@@ -91,6 +91,35 @@ if uploaded_file and query_date:
             )
             st.dataframe(ob_agg_df_display, use_container_width=True, hide_index=True)
 
+            with st.expander("Raw records — Occupied Beds"):
+                st.dataframe(occ_df, use_container_width=True, hide_index=True)
+
+        st.divider()
+        st.subheader("Discharge Records")
+
+        discharge_tabs = st.tabs(["Cured", "DAMA", "Transferred", "All Discharges"])
+        with discharge_tabs[0]:
+            if dis_df.empty:
+                st.info("No cured discharges on this date.")
+            else:
+                st.dataframe(dis_df, use_container_width=True, hide_index=True)
+        with discharge_tabs[1]:
+            if dama_df.empty:
+                st.info("No DAMA discharges on this date.")
+            else:
+                st.dataframe(dama_df, use_container_width=True, hide_index=True)
+        with discharge_tabs[2]:
+            if transfered_df.empty:
+                st.info("No transfers on this date.")
+            else:
+                st.dataframe(transfered_df, use_container_width=True, hide_index=True)
+        with discharge_tabs[3]:
+            all_dis_df = pd.concat([dis_df, dama_df, transfered_df], ignore_index=True)
+            if all_dis_df.empty:
+                st.info("No discharges on this date.")
+            else:
+                st.dataframe(all_dis_df, use_container_width=True, hide_index=True)
+
     except Exception as e:
         st.error(f"Error processing file: {e}")
 else:
