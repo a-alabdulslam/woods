@@ -64,7 +64,10 @@ if uploaded_file and query_date:
         # --- Occupied beds ---
         occ_df = df[
             (df["Date of Admission"].dt.normalize() <= query_dt)
-            & (df["DATE  OF DISCHARGE"].dt.normalize() >= query_dt)
+            & (
+                df["DATE  OF DISCHARGE"].isna()
+                | (df["DATE  OF DISCHARGE"].dt.normalize() >= query_dt)
+            )
         ]
         ob_agg_df = (
             occ_df.groupby("Sepciality").size().reset_index(name="Occupied Beds")
