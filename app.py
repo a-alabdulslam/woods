@@ -73,7 +73,10 @@ if uploaded_file and query_date:
             occ_df.groupby("Sepciality").size().reset_index(name="Occupied Beds")
         )
 
-        remaining_df = occ_df[occ_df["Date of Admission"].dt.normalize() < query_dt]
+        remaining_df = occ_df[
+            (occ_df["Date of Admission"].dt.normalize() < query_dt)
+            & (occ_df["Length of Stay"] != "Postponed")
+        ]
         remaining_count = remaining_df.shape[0]
 
         # --- Display ---
