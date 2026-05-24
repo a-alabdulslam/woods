@@ -73,16 +73,20 @@ if uploaded_file and query_date:
             occ_df.groupby("Sepciality").size().reset_index(name="Occupied Beds")
         )
 
+        remaining_df = occ_df[occ_df["Date of Admission"].dt.normalize() < query_dt]
+        remaining_count = remaining_df.shape[0]
+
         # --- Display ---
         st.divider()
         st.subheader(f"Summary for {query_date_str}")
 
-        m1, m2, m3, m4, m5 = st.columns(5)
+        m1, m2, m3, m4, m5, m6 = st.columns(6)
         m1.metric("New Admissions", admitted_count)
-        m2.metric("Total Discharges", total_discharge_count)
-        m3.metric("Discharged (Cured)", dis_count)
-        m4.metric("DAMA", dama_count)
-        m5.metric("Transferred", transfered_count)
+        m2.metric("Remaining from Past Days", remaining_count)
+        m3.metric("Total Discharges", total_discharge_count)
+        m4.metric("Discharged (Cured)", dis_count)
+        m5.metric("DAMA", dama_count)
+        m6.metric("Transferred", transfered_count)
 
         st.divider()
         st.subheader("Occupied Beds by Speciality")
