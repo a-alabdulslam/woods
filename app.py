@@ -21,15 +21,21 @@ if uploaded_file and query_date:
         xl = pd.ExcelFile(uploaded_file)
 
         if SHEET_NAME not in xl.sheet_names:
-            st.error(f"Sheet '{SHEET_NAME}' not found. Available sheets: {xl.sheet_names}")
+            st.error(
+                f"Sheet '{SHEET_NAME}' not found. Available sheets: {xl.sheet_names}"
+            )
             st.stop()
 
         df = xl.parse(SHEET_NAME)
         df = df.dropna(axis=1, how="all")
 
         # Normalize date columns
-        df["Date of Admission"] = pd.to_datetime(df["Date of Admission"], errors="coerce")
-        df["DATE  OF DISCHARGE"] = pd.to_datetime(df["DATE  OF DISCHARGE"], errors="coerce")
+        df["Date of Admission"] = pd.to_datetime(
+            df["Date of Admission"], errors="coerce"
+        )
+        df["DATE  OF DISCHARGE"] = pd.to_datetime(
+            df["DATE  OF DISCHARGE"], errors="coerce"
+        )
 
         query_dt = pd.to_datetime(query_date_str)
 
@@ -58,7 +64,7 @@ if uploaded_file and query_date:
         # --- Occupied beds ---
         occ_df = df[
             (df["Date of Admission"].dt.normalize() <= query_dt)
-            & (df["DATE  OF DISCHARGE"].dt.normalize() > query_dt)
+            & (df["DATE  OF DISCHARGE"].dt.normalize() >= query_dt)
         ]
         ob_agg_df = (
             occ_df.groupby("Sepciality").size().reset_index(name="Occupied Beds")
@@ -123,4 +129,6 @@ if uploaded_file and query_date:
     except Exception as e:
         st.error(f"Error processing file: {e}")
 else:
-    st.info("Please select a query date and upload the Excel file to generate the report.")
+    st.info(
+        "Please select a query date and upload the Excel file to generate the report."
+    )
