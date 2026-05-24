@@ -58,9 +58,6 @@ if uploaded_file and query_date:
         transfered_count = transfered_df.shape[0]
         total_discharge_count = dis_count + dama_count + transfered_count
 
-        admitted_df = df[df["Date of Admission"].dt.normalize() == query_dt]
-        admitted_count = admitted_df.shape[0]
-
         # --- Occupied beds ---
         occ_df = df[
             (df["Date of Admission"].dt.normalize() <= query_dt)
@@ -68,15 +65,16 @@ if uploaded_file and query_date:
                 df["DATE  OF DISCHARGE"].isna()
                 | (df["DATE  OF DISCHARGE"].dt.normalize() >= query_dt)
             )
+            & (df["Length of Stay"] != "postponned")
         ]
         ob_agg_df = (
             occ_df.groupby("Sepciality").size().reset_index(name="Occupied Beds")
         )
 
-        remaining_df = occ_df[
-            (occ_df["Date of Admission"].dt.normalize() < query_dt)
-            & (occ_df["Length of Stay"] != "Postponed")
-        ]
+        admitted_df = occ_df[occ_df["Date of Admission"].dt.normalize() == query_dt]
+        admitted_count = admitted_df.shape[0]
+
+        remaining_df = occ_df[(occ_df["Date of Admission"].dt.normalize() < query_dt)]
         remaining_count = remaining_df.shape[0]
 
         # --- Display ---
@@ -101,14 +99,33 @@ if uploaded_file and query_date:
             ob_agg_df_display = pd.concat(
                 [
                     ob_agg_df,
-                    pd.DataFrame([{"Sepciality": "**Total**", "Occupied Beds": total}]),
+                    pd.DataFrame([{"Sepciality": "Total", "Occupied Beds": total}]),
                 ],
                 ignore_index=True,
             )
             st.dataframe(ob_agg_df_display, use_container_width=True, hide_index=True)
 
-            with st.expander("Raw records — Occupied Beds"):
-                st.dataframe(occ_df, use_container_width=True, hide_index=True)
+            with st.expander("Raw records"):
+                admissions_tabs = st.tabs(
+                    ["Occupied Beds", "New Admissions", "Remaining from Past Days"]
+                )
+
+                with admissions_tabs[0]:
+                    st.dataframe(occ_df, use_container_width=True, hide_index=True)
+                with admissions_tabs[1]:
+                    if admitted_df.empty:
+                        st.info("No new admissions on this date.")
+                    else:
+                        st.dataframe(
+                            admitted_df, use_container_width=True, hide_index=True
+                        )
+                with admissions_tabs[2]:
+                    if remaining_df.empty:
+                        st.info("No remaining patients from past days on this date.")
+                    else:
+                        st.dataframe(
+                            remaining_df, use_container_width=True, hide_index=True
+                        )
 
         st.divider()
         st.subheader("Discharge Records")
